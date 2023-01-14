@@ -1,7 +1,7 @@
 ---
 title: "Lab 03 - Nobel laureates"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Qilin"
+date: "1/14/2023"
 output: github_document
 ---
 
@@ -18,27 +18,44 @@ nobel <- read_csv("data/nobel.csv")
 ## Exercises
 
 ### Exercise 1
-
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+```{r dimension}
+dim(nobel)
+#for getting the number of observations and variables
+print(nobel)
+#for understanding what each row represent
+```
+935 observations and 26 variables
+Each row represents a single observation
 
 ### Exercise 2
-
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+```{r nobel_living}
+nobel_living <- nobel %>%
+  filter(!is.na(country), gender != "org", is.na(died_date))
+```
 
 ### Exercise 3
+```{r nobel_living_science}
+nobel_living <- nobel_living %>%
+  mutate(
+    country_us = if_else(
+      country == "USA", "USA", "Other"
+    )
+  )
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+nobel_living_science <- nobel_living %>%
+  filter(category %in% c("Physics", "Medicine", "Chemistry", "Economics"))
+
+```
+
 
 ### Exercise 4
+```{r faceted_bar_plot}
+
+ggplot(nobel_living_science, mapping = aes(y= country_us, fill = category))+
+  geom_bar(position = "dodge")
+
+
+```
 
 ...
 
