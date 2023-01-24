@@ -18,6 +18,7 @@ nobel <- read_csv("data/nobel.csv")
 ## Exercises
 
 ### Exercise 1
+
 ```{r dimension}
 dim(nobel)
 #for getting the number of observations and variables
@@ -25,44 +26,99 @@ print(nobel)
 #for understanding what each row represent
 ```
 935 observations and 26 variables
-Each row represents a single observation
+Each row represents a single observation/a single entry of Nobel Laureates
 
 ### Exercise 2
+
 ```{r nobel_living}
 nobel_living <- nobel %>%
   filter(!is.na(country), gender != "org", is.na(died_date))
+
+nrow(nobel_living) #double check if there are 228 observations
 ```
 
 ### Exercise 3
-```{r nobel_living_science}
+
+```{r faceted_bar_plot, message= FALSE}
 nobel_living <- nobel_living %>%
   mutate(
     country_us = if_else(
       country == "USA", "USA", "Other"
+      )
     )
-  )
 
 nobel_living_science <- nobel_living %>%
   filter(category %in% c("Physics", "Medicine", "Chemistry", "Economics"))
 
-```
+graph <- nobel_living_science %>%
+  group_by(category,country_us) %>%
+  summarize(country_count = table(country_us))
 
+ggplot(graph, mapping = aes(y= category, x= country_count, fill = country_us))+
+  geom_bar(position = "dodge", stat = "identity") 
+
+rm(graph)
+
+```
+From the bar chart, it seems like most of the living Nobel laureates are from the US, which countered the topic of the Buzzfeed, at least in the literal sense. However, the data does not tell whether winners from the US are immigrants.
 
 ### Exercise 4
-```{r faceted_bar_plot}
 
-ggplot(nobel_living_science, mapping = aes(y= country_us, fill = category))+
-  geom_bar(position = "dodge")
+```{r born_in_US}
 
+#science winners
+nobel_living_science <- nobel_living_science %>%
+  mutate(born_country_us = 
+           ifelse(born_country == "USA","USA","Other"
+  )
+)
+
+table(nobel_living_science$born_country_us)
+
+#all winners
+nobel$born_country_us <- ifelse(nobel$born_country == "USA","USA","Other")
+
+table(nobel$born_country_us)
 
 ```
 
-...
+271 Winners were born in the US among all winners.
+
+105 winners were born in the us among science winners.
 
 ### Exercise 5
 
-...
+```{r 3variables_graphs, Message = FALSE}
+
+graph2 <- nobel_living_science %>%
+  group_by(category,country_us,born_country_us) %>%
+  summarize(country_count = table(country_us))
+
+#smashed/failed version :(
+ggplot(graph2)+
+  geom_bar(position = "dodge",stat = "identity",mapping = aes(y= category, x= country_count, fill =country_us))+
+  geom_bar(position = "dodge", mapping = aes(y= category, x= country_count, color = born_country_us, alpha = 0.1), stat = "identity")+
+  scale_fill_discrete(name  ="nationality")
+  
+#facet_wrap version
+ggplot(graph2)+
+  geom_bar(position = "dodge",stat = "identity",mapping = aes(y= category, x= country_count, fill =country_us))+
+  facet_grid(cols = vars(born_country_us))+
+  scale_fill_discrete(name  ="nationality")+
+  labs(subtitle = "Born country")
+
+rm(graph2)
+```
+
+Seem like immigrants do take up some Nobel Laureates in the US. However, their number did not exceed those NObel Laureates who are originally from the US. 
 
 ### Exercise 6
 
-...
+```{r single_pipeline}
+nobel %>%
+  filter(country == "USA", born_country != "USA") %>%
+  count(born_country)%>%
+  arrange(desc(n))
+
+```
+UK is the most common. 
